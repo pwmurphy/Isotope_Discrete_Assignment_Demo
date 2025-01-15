@@ -1,7 +1,7 @@
 Isotope Discrete Assignment Tutorial
 =============
 
-This is a brief tutorial for discrete origin assignment using a subset of Wisconsin mallard feather samples from Wisconsin-harvested mallards. In this tutorial, we will go through the steps to assign feather samples a region of origin: ‘local’ versus non-local (‘northern’ or ‘southern’) bird origin. There is also a small component about relating timing of harvest to origin location.
+This is a brief tutorial for discrete origin assignment using a subset of mallard feather samples from Wisconsin-harvested mallards. In this tutorial, we will go through the steps to assign feather samples a region of origin: ‘local’ versus non-local (‘northern’ or ‘southern’) bird origin. There is also a small component about relating timing of harvest to origin location.
 
 The tutorial was put together for project partners and collaborators on the WI/MN DNR waterfowl harvest derivation project. All necessary data is provided and all other data and plots will be generated within R. Code based off code written by Drew Fowler.
 
