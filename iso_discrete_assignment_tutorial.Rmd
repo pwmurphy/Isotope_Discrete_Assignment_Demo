@@ -1,0 +1,342 @@
+---
+title: "Waterfowl Harvest Derivation: Discrete origin assignment tutorial - January 2025"
+date: "`r Sys.Date()`"
+output:
+  prettydoc::html_pretty:
+    theme: tactile
+    highlight: github
+    number_sections: TRUE
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = "")
+```
+
+This is a brief tutorial for discrete origin assignment using a subset of mallard feather samples from Wisconsin-harvested mallards. In this tutorial, we will go through the steps to assign feather samples a region of origin: 'local' versus non-local ('northern' or 'southern') bird origin. There is also a small component about relating timing of harvest to origin location. 
+
+The tutorial was put together for project partners and collaborators on the WI/MN DNR waterfowl harvest derivation project. All necessary data is provided and all other data and plots will be generated within R. Code based off code written by Drew Fowler. 
+
+This tutorial doesn't cover background information about using isotope approaches to determining sample tissue origins. For a wonderful overview see the [isotope spatial assignment workshop](https://github.com/JacksonKusack/Isotope-Assignment-Workshop) that Jackson Kusack created, in particular, the slides from the workshop introductory presentation (link to download the presentation file from Jackson's github [here](https://github.com/JacksonKusack/Isotope-Assignment-Workshop/raw/main/Presentation/OCTWS%20-%20Assignment%20Workshop%20-%20Introduction.pdf)). 
+
+***
+
+## Load Packages
+
+
+The following packages are required to run this Rmd script. They will automatically install and load if you do not currently have them installed. 
+
+```{r packages, warning=F, message=F}
+if (!require('raster')) install.packages('raster'); library('raster')
+if (!require('terra')) install.packages('terra'); library('terra')
+if (!require('sf')) install.packages('sf'); library('sf')
+if (!require('sp')) install.packages('sp'); library('sp')
+if (!require('rnaturalearth')) install.packages('rnaturalearth'); library('rnaturalearth')
+if (!require('rnaturalearthdata')) install.packages('rnaturalearthdata'); library('rnaturalearthdata')
+if (!require('rnaturalearthhires')) install.packages('rnaturalearthhires'); library('rnaturalearthhires')
+if (!require('dplyr')) install.packages('dplyr'); library('dplyr')
+if (!require('readr')) install.packages('readr'); library('readr')
+if (!require('RColorBrewer')) install.packages('RColorBrewer'); library('RColorBrewer')
+if (!require('ggplot2')) install.packages('ggplot2'); library('ggplot2')
+if (!require('viridis')) install.packages('viridis'); library('viridis')
+if (!require('rmapshaper')) install.packages('rmapshaper'); library('rmapshaper')
+if (!require('tidyr')) install.packages('tidyr'); library('tidyr')
+if (!require('lubridate')) install.packages('lubridate'); library('lubridate')
+if (!require('gt')) install.packages('gt'); library('gt')
+```
+
+
+***
+
+## Precipitation Isoscape
+
+We'll begin by loading in our precipitation isoscape. For this tutorial, we'll be using the amount-weighted growing season \(\delta\)<sup>2</sup>H precipitation isoscape ([Bowen et al. 2005](https://link.springer.com/article/10.1007/s00442-004-1813-y)). Below, code to download a raster file hosted on the github repository (https://github.com/pwmurphy/Isotope_Discrete_Assignment_Demo). 
+
+Alternatively, the precipitation isoscape can be downloaded through the **AssignR** package ([Ma et al. 2020](https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/2041-210X.13426)). 
+
+```{r precipitation isoscape}
+# download precip isoscape from github repository
+download.file(
+  "https://raw.githubusercontent.com/pwmurphy/Isotope_Discrete_Assignment_Demo/main/data/d2h_GS.tif",
+  destfile = "d2h_GS.tif",
+  mode = "wb"
+)
+
+# load precipitation isoscape raster and set CRS
+isoscape_GS <- rast("d2h_GS.tif")
+crs(isoscape_GS) <- "+proj=longlat +proj=longlat +datum=WGS84 +no_defs"
+
+plot(isoscape_GS) #view precipitation isoscape
+```
+
+## Feather Isoscape Calibration
+
+Next, we need to use a calibration equation to produce the feather (\(\delta\)<sup>2</sup>H<sub>f</sub>) isoscape from the precipitation (\(\delta\)<sup>2</sup>H<sub>p</sub>) isoscape. We are working with mallard feather samples and will use a dabbling duck-specific calibration equation (see [Kusack et al. 2023](https://doi.org/10.1371/journal.pone.0288262)). This calibration equation is expressed as the following linear equation:
+
+$$\delta^2H_f = 0.7 * \delta^2H_p - 69.9$$
+$$SD_{resid} = 17.7$$
+Applying this calibration equation to reclassify the precipitation-based (\(\delta\)<sup>2</sup>H<sub>p</sub>) isoscape gives us this feather (\(\delta\)<sup>2</sup>H<sub>f</sub>) isoscape: 
+
+```{r calibrate isoscape}
+
+# create feather isoscape using the mean growing season (MGS) dabbler calibration equation from Kusack et al. 2023
+isoscape_GS_NA <- (-69.9) + (0.7 * isoscape_GS)
+
+plot(isoscape_GS_NA) # view isoscape
+```
+
+
+## Define Origin Region  \(\delta\)<sup>2</sup>H<sub>f</sub> Value Breakpoints:
+
+For this discrete origin assignment, we are interested in determining the proportion of birds that originated locally versus the proportion of birds from non-local origins. To do so, we can use the range of predicted feather (\(\delta\)<sup>2</sup>H<sub>f</sub>) values across Wisconsin and classify any feather sample with values within this range +/- the standard deviation to be from a bird of ‘local’ origin. Any \(\delta\)<sup>2</sup>H<sub>f</sub> values more negative can be classified as ‘northern’ origin as \(\delta\)<sup>2</sup>H<sub>f</sub> values tend to become more negative with increasing latitude. Conversely, any \(\delta\)<sup>2</sup>H<sub>f</sub> values that are less negative are classified as ‘southern’ origin. 
+
+To define these origin region value breakpoints, we need to determine the minimum and maximum \(\delta\)<sup>2</sup>H<sub>f</sub> isoscape values for Wisconsin. We can extract these values from the \(\delta\)<sup>2</sup>H<sub>f</sub> isoscape by cropping and masking the isoscape to the state of Wisconsin. 
+
+
+```{r wisconsin isoscape}
+# load in US states
+state_basemap <- ne_states(country = "united states of america", # load in all the US states
+                           returnclass = "sf") 
+
+# isolate Wisconsin
+wi_basemap <- state_basemap %>%
+  filter(fips == 'US55') %>% # select Wisconsin
+  st_transform("+proj=longlat +proj=longlat +datum=WGS84 +no_defs") %>% # set crs
+  ms_simplify(keep=0.05) %>% # simplify the polygon shape a bit
+  as("Spatial") %>% 
+  vect() # makes it a SpatVector to work with the raster
+
+# mask and crop the feather isoscape to Wisconsin
+wi_isoscape_NA <- mask(isoscape_GS_NA, wi_basemap)
+wi_isoscape_NA <- crop(wi_isoscape_NA,wi_basemap)
+
+# plot isoscape
+plot(wi_isoscape_NA)
+```
+
+To account for uncertainty/variability, the value breakpoints will be the minimum and maximum \(\delta\)<sup>2</sup>H<sub>f</sub> values + / - the standard deviation of the feather isoscape (SD<sub>resid</sub>), 17.7. 
+We can then use these breakpoints to establish the range of values for our discrete origin regions: 
+
+```{r identify local origin breakpoints}
+
+# Isolate range of WI feather d2h values
+wi_d2h_values_NA <- as.data.frame(values(wi_isoscape_NA)) %>%
+  drop_na() %>% 
+  rename(d2h_vs_vsmow_original = d2h_GS) %>% 
+  mutate(source = "wi_GS_feather_isoscape")
+
+# establish feather d2h value boundaries for local versus non local origin using minimum and maximum expected d2h values in WI +/- the standard deviation of the calibration equation
+SD_eq <- 17.7 # taken from Kusack et al. 2023 MGS Dabbler Calibration Equation
+
+local_max <- max(wi_d2h_values_NA$d2h_vs_vsmow_original) + SD_eq
+local_min <- min(wi_d2h_values_NA$d2h_vs_vsmow_original) - SD_eq
+```
+
+
+```{r local origin break points, echo = FALSE}
+
+# define region cutoffs
+Northern <- (paste0("More negative than ", round(local_min,2), "\u2030"))
+Local <- (paste0(round(local_max,2),"\u2030 to ", round(local_min,2), "\u2030"))
+Southern <- (paste0("Less negative than ", round(local_max,2), "\u2030"))
+
+# Create a data frame
+local_breakpoints <- data.frame(
+  Origin = c("Northern", "Local", "Southern"),
+  Range = c(Northern, Local, Southern)
+)
+
+local_breakpoints %>%
+  gt() %>%
+  tab_header(
+    title = "Origin Region Value Ranges"
+  )
+
+```
+
+
+## Discrete Assignment of 'Local' vs 'Northern' or 'Southern' Origin
+
+Now that we have defined value ranges for our discrete origin regions, we can assign origins to feather samples of unknown origin. For this tutorial, we'll upload a dataset of after hatch-year mallards that were harvested across Wisconsin over the 2019 - 2021 hunting seasons:
+
+```{r upload feather d2h data}
+
+# download feather d2h sample results for after hatch-year Mallards harvested in Wisconsin
+download.file(
+  "https://raw.githubusercontent.com/pwmurphy/Isotope_Discrete_Assignment_Demo/main/data/MALL_WI_ahy_dataset.csv",
+  destfile = "MALL_WI_ahy_dataset.csv",
+  mode = "wb"
+)
+
+# load in feather dataset
+mall_feather_df <- read_csv("MALL_WI_ahy_dataset.csv") %>% 
+  mutate(collection_date = mdy(collection_date)) # specify collection_date as a date
+```
+
+
+Using the \(\delta\)<sup>2</sup>H<sub>f</sub> value ranges, we can assign an origin to each sample and summarize results in a figure:
+
+```{r assign origin regions to samples}
+
+# use the range of expected d2h feather values in Wisconsin to assign local or northern origin "predicted origin" to each sample, amend to dataframe 
+mall_feather_df <- mall_feather_df %>% 
+  mutate(predicted_origin = case_when(d2h_vs_vsmow_original <= local_min ~ "northern", # more negative values are 
+                                      d2h_vs_vsmow_original < local_max & d2h_vs_vsmow_original > local_min ~ "local",
+                                      d2h_vs_vsmow_original >= local_max ~ "southern"),
+         doy = yday(collection_date))
+
+
+# Figure: number of birds assigned as 'local', 'nothern' or 'southern' by discrete assignment
+mall_ahy_sample_size <- count(mall_feather_df %>% drop_na(d2h_vs_vsmow_original)) # pull sample size
+
+mall_feather_df %>% drop_na(d2h_vs_vsmow_original) %>%
+  group_by(sex, predicted_origin) %>%
+  tally() %>%
+  mutate(freq = n / sum(n)) %>%
+  ggplot(aes(x = sex, y = n, fill = predicted_origin )) +
+  geom_col(position = "dodge") +
+  theme_minimal()+
+  geom_text(position = position_dodge(width = 0.9),
+            hjust = -0.25, aes(label = scales::percent(freq, accuracy = 0.1))) +
+  scale_fill_manual(values = c("local" = "black","northern" = "#9fb052", "southern" = "#9988bd"))+
+  ylim(c(0, 100)) +
+  coord_flip() +
+  labs(
+    y = 'Number of individuals',
+    x = '',
+    title = paste0('After Hatch-year Wisconsin-harvested Mallards: \nDiscrete isotope assignment (n = ', mall_ahy_sample_size,')'),
+    fill = "Predicted origin") 
+```
+
+Results from this discrete assignment suggest that most Wisconsin-harvested mallards in the sample were of 'local' origin, but that 40% of males and 23% of females appear to come from 'non-local' origins. This is contrary to banding-derived harvest derivations which suggest that 70-95% of after-hatch year mallards originate in Wisconsin and even higher proportions of harvested hatch-year birds were reared in-state (WDNR, unpublished data). However, it is hard to directly compare banding harvest derivations to this discrete isotopic derivation because the the scale of the origin regions do not match. Banding data can give us state/province-level or better information about bird origin while the discrete assignment is limited to broad local vs non local regions. 
+
+## Consideration: Is Discrete Assignment too Coarse?
+
+While we used the minimum and maximum \(\delta\)<sup>2</sup>H<sub>f</sub> values across Wisconsin to define our 'local' origin \(\delta\)<sup>2</sup>H<sub>f</sub> range, the range of 'local' predicted \(\delta\)<sup>2</sup>H<sub>f</sub> values for Wisconsin overlaps with predicted \(\delta\)<sup>2</sup>H<sub>f</sub> values across a much larger area. This is due to several factors including: relatively little variation in \(\delta\)<sup>2</sup>H<sub>f</sub> values east to west at a given latitude and high variation in feather values (represented appropriately by a large standard deviations for the feather (\(\delta\)<sup>2</sup>H<sub>f</sub>) isoscape). 
+
+To determine what area corresponds to our 'local' origin classification, we can look at the feather isoscape across the breeding range of the Mississippi and Central Flyways to see what the 'local' origin range covers. 
+
+First, we begin by cropping and masking the feather isoscape to the mallard breeding range in the Mississippi and Central Flyways:
+
+```{r flyway crop, warning=FALSE}
+# Download mallard breeding (MS and CN flyway) assignment range from Github repo location
+download.file(
+  "https://raw.githubusercontent.com/pwmurphy/Isotope_Discrete_Assignment_Demo/main/data/mall.assignment.range.rds",
+  destfile = "mall.assignment.range.rds",
+  mode = "wb"
+)
+
+# crop and mask isoscape raster to assignment range and set CRS
+mall.assignment.range <- readRDS(file = "mall.assignment.range.rds") %>% 
+  vect(crs = isoscape_GS_NA)
+
+range_isoscape <- crop(isoscape_GS_NA, mall.assignment.range)
+range_isoscape <- mask(range_isoscape, mall.assignment.range) 
+
+plot(range_isoscape)
+
+# upload country, state/province shapefiles
+
+northamerica <- ne_countries(continent = "North America", scale = 50, returnclass = "sf") %>% # Countries
+  st_transform(st_crs('EPSG:4326')) # Project to WGS84
+
+northamerica.states <- ne_states(country =  c("Canada","United States of America"), returnclass = "sf") %>% # States and provinces
+  st_transform(st_crs('EPSG:4326')) #%>% # Project to WGS84
+
+plot(st_geometry(northamerica.states), add = T)
+
+```
+
+Then, we can reclassify the raster surface according to the discrete origin region breakpoints to determine which part of the flyways are considered 'northern', 'local', and 'southern':
+
+```{r flyway region reclass, warning=FALSE}
+  
+## reclassify:
+reclass_matrix_dabblers <- matrix(c(-Inf, local_min, 0, # northern origin area
+                           local_min, local_max, 1, # local origin area
+                           local_max, Inf, 2), # southern origin area
+                         ncol = 3, byrow = TRUE)
+
+
+# Reclassify the raster
+range_isoscape_binary <- classify(range_isoscape, reclass_matrix_dabblers)
+category_colors <- c("#9fb052", "#9988bd", "black")
+
+# make nice plot of the flyway feather isoscape dabblers, 'local' area
+
+# Prepare the reclassified isoscape for plotting in ggplot
+range_binary_df <- as.data.frame(range_isoscape_binary, xy = TRUE, na.rm = FALSE) %>% 
+  rename(value = d2h_GS) %>% 
+  mutate(region = case_when(
+    value == 0 ~ "northern",
+    value == 1 ~ "local",
+    value == 2 ~ "southern",
+    is.na(value) ~ "out of range"
+  ))
+
+# Get the extent of the raster to use for the map extent
+range_extent <- ext(range_isoscape_binary)
+
+# Create the plot
+ggplot() +
+  # Plot the raster
+  geom_tile(data = range_binary_df, aes(x = x, y = y, fill = as.factor(region))) +
+  scale_fill_manual(values = c("local" = "black","northern" = "#9fb052", "southern" = "#9988bd", "out of range" = "white")) +
+  # Plot the sf dataframe
+  geom_sf(data = northamerica.states, fill = NA, color = "black", linewidth = 0.5) +
+  # Set the coordinate limits to match the raster extent
+  coord_sf(
+    xlim = c(range_extent$xmin, range_extent$xmax),
+    ylim = c(range_extent$ymin, range_extent$ymax),
+    expand = FALSE
+  ) +
+  # Add labels and theme
+  labs(
+    title = "Discrete assignment origin regions for Dabblers",
+    x = "Longitude",
+    y = "Latitude",
+    fill = "Discrete origin region"
+  ) +
+  theme_minimal()
+
+```
+
+Here, local origin (black) corresponds generally to the US portions of the Central and Mississippi flyways and extends into southern Ontario and Manitoba. The northern origin region (yellow-green) encompasses most of Canada, and no areas in the flyway breeding range have a mean \(\delta\)<sup>2</sup>H<sub>f</sub> value within the 'southern' origin region range. In other words, the higher (i.e., less negative) end of this ‘local’ \(\delta\)<sup>2</sup>H<sub>f</sub> value range classification (𝛿2Hdabblers = -80.7‰ ) is greater than the maximum predicted \(\delta\)<sup>2</sup>H<sub>f</sub> value in the isoscape across the Mississippi and Central flyways (\(\delta\)<sup>2</sup>H<sub>f</sub> = -88.1‰). 
+
+Overall, the discrete origin analysis gives us a coarse idea of bird origin. Future work/discussions with project partners might address whether this is the highest level of resolution we can expect from this approach or if we can refine it or, try different isotope approaches for harvest derivation. 
+
+## Extra: Assess how timing of harvest is related to origin location 
+
+In addition to discrete origin assignment, we can also look at \(\delta\)<sup>2</sup>H<sub>f</sub> values across the hunting season to assess how timing of harvest is related to origin location. To do this, we can plot \(\delta\)<sup>2</sup>H<sub>f</sub> values versus ordinal day of harvest.
+
+```{r timing of harvest plots}
+
+# Scatter plot of after hatch-year mallard d2H by feather value 
+mall_feather_df %>% 
+  drop_na(d2h_vs_vsmow_original) %>%
+  ggplot(aes(x=doy, y=d2h_vs_vsmow_original)) +
+  geom_point() +
+  geom_smooth(method=lm , fill="grey", se=T) +
+  theme_minimal()+
+  ylab(expression(paste(delta^{2}, "H (\u2030)")))+
+  xlab("Julian day")+
+  ggtitle(expression(paste("After hatch-year WI harvest mallard feather ", delta^{2}, "H (\u2030)")))
+
+```
+
+The negative linear relationship between Julian day of harvest and feather \(\delta\)<sup>2</sup>H<sub>f</sub> value suggests that mallards shot later in the hunting season may originate farther north than birds shot earlier in the season as \(\delta\)<sup>2</sup>H<sub>f</sub> values tend to become larger/more negative with increasing latitude. 
+
+Other regression models can be run to evaluate how feather \(\delta\)<sup>2</sup>H<sub>f</sub> values of harvested waterfowl may vary with bird age, sex, or year of harvest. 
+
+## References
+Bowen GJ, Wassenaar LI, Hobson KA (**2005**) Global application of stable hydrogen and oxygen isotopes to wildlife forensics. Oecologia 143:337–348. [Link](https://doi.org/10.1007/s00442-004-1813-y) 
+
+Ma C, Vander Zanden HB, Wunder MB, Bowen GJ (**2020**) assignR: an R package for isotope-based geographic assignment. Methods in Ecol Evol 11:996–1001. [Link](https://doi.org/10.1111/2041-210X.13426)
+
+Kusack JW, Tozer DC, Harvey KM, Schummer ML, Hobson KA. (**2023**) Assigning harvested waterfowl to geographic origin using feather δ2H isoscapes: What is the best analytical approach? PLOS ONE 18(7):e0288262. [Link](https://doi.org/10.1371/journal.pone.0288262)
+
+## Session Info
+
+```{r}
+sessionInfo()
+```
+
