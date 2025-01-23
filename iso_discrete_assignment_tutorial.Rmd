@@ -26,6 +26,7 @@ This tutorial doesn't cover background information about using isotope approache
 The following packages are required to run this Rmd script. They will automatically install and load if you do not currently have them installed. 
 
 ```{r packages, warning=F, message=F}
+if (!require('devtools')) install.packages('devtools'); library('devtools')
 if (!require('raster')) install.packages('raster'); library('raster')
 if (!require('terra')) install.packages('terra'); library('terra')
 if (!require('sf')) install.packages('sf'); library('sf')

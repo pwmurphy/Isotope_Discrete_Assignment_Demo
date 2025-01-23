@@ -5,6 +5,7 @@ rm(list=ls())
 
 ################################
 ## PACKAGES
+if (!require('devtools')) install.packages('devtools'); library('devtools')
 if (!require('raster')) install.packages('raster'); library('raster')
 if (!require('terra')) install.packages('terra'); library('terra')
 if (!require('sf')) install.packages('sf'); library('sf')

@@ -11,7 +11,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 
 
-<meta name="date" content="2025-01-14" />
+<meta name="date" content="2025-01-23" />
 
 <title>Waterfowl Harvest Derivation: Discrete origin assignment tutorial - January 2025</title>
 
@@ -152,7 +152,7 @@ code span.ot { color: #007020; }
 <header>
 <h1 class="title toc-ignore">Waterfowl Harvest Derivation: Discrete
 origin assignment tutorial - January 2025</h1>
-<h3 class="date">2025-01-14</h3>
+<h3 class="date">2025-01-23</h3>
 </header>
 
 <hr>
@@ -181,22 +181,23 @@ to download the presentation file from Jackson’s github <a href="https://githu
 <p>The following packages are required to run this Rmd script. They will
 automatically install and load if you do not currently have them
 installed.</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&#39;raster&#39;</span>)) <span class="fu">install.packages</span>(<span class="st">&#39;raster&#39;</span>); <span class="fu">library</span>(<span class="st">&#39;raster&#39;</span>)</span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&#39;terra&#39;</span>)) <span class="fu">install.packages</span>(<span class="st">&#39;terra&#39;</span>); <span class="fu">library</span>(<span class="st">&#39;terra&#39;</span>)</span>
-<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&#39;sf&#39;</span>)) <span class="fu">install.packages</span>(<span class="st">&#39;sf&#39;</span>); <span class="fu">library</span>(<span class="st">&#39;sf&#39;</span>)</span>
-<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&#39;sp&#39;</span>)) <span class="fu">install.packages</span>(<span class="st">&#39;sp&#39;</span>); <span class="fu">library</span>(<span class="st">&#39;sp&#39;</span>)</span>
-<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&#39;rnaturalearth&#39;</span>)) <span class="fu">install.packages</span>(<span class="st">&#39;rnaturalearth&#39;</span>); <span class="fu">library</span>(<span class="st">&#39;rnaturalearth&#39;</span>)</span>
-<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&#39;rnaturalearthdata&#39;</span>)) <span class="fu">install.packages</span>(<span class="st">&#39;rnaturalearthdata&#39;</span>); <span class="fu">library</span>(<span class="st">&#39;rnaturalearthdata&#39;</span>)</span>
-<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&#39;rnaturalearthhires&#39;</span>)) <span class="fu">install.packages</span>(<span class="st">&#39;rnaturalearthhires&#39;</span>); <span class="fu">library</span>(<span class="st">&#39;rnaturalearthhires&#39;</span>)</span>
-<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&#39;dplyr&#39;</span>)) <span class="fu">install.packages</span>(<span class="st">&#39;dplyr&#39;</span>); <span class="fu">library</span>(<span class="st">&#39;dplyr&#39;</span>)</span>
-<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&#39;readr&#39;</span>)) <span class="fu">install.packages</span>(<span class="st">&#39;readr&#39;</span>); <span class="fu">library</span>(<span class="st">&#39;readr&#39;</span>)</span>
-<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&#39;RColorBrewer&#39;</span>)) <span class="fu">install.packages</span>(<span class="st">&#39;RColorBrewer&#39;</span>); <span class="fu">library</span>(<span class="st">&#39;RColorBrewer&#39;</span>)</span>
-<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&#39;ggplot2&#39;</span>)) <span class="fu">install.packages</span>(<span class="st">&#39;ggplot2&#39;</span>); <span class="fu">library</span>(<span class="st">&#39;ggplot2&#39;</span>)</span>
-<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&#39;viridis&#39;</span>)) <span class="fu">install.packages</span>(<span class="st">&#39;viridis&#39;</span>); <span class="fu">library</span>(<span class="st">&#39;viridis&#39;</span>)</span>
-<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&#39;rmapshaper&#39;</span>)) <span class="fu">install.packages</span>(<span class="st">&#39;rmapshaper&#39;</span>); <span class="fu">library</span>(<span class="st">&#39;rmapshaper&#39;</span>)</span>
-<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&#39;tidyr&#39;</span>)) <span class="fu">install.packages</span>(<span class="st">&#39;tidyr&#39;</span>); <span class="fu">library</span>(<span class="st">&#39;tidyr&#39;</span>)</span>
-<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&#39;lubridate&#39;</span>)) <span class="fu">install.packages</span>(<span class="st">&#39;lubridate&#39;</span>); <span class="fu">library</span>(<span class="st">&#39;lubridate&#39;</span>)</span>
-<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&#39;gt&#39;</span>)) <span class="fu">install.packages</span>(<span class="st">&#39;gt&#39;</span>); <span class="fu">library</span>(<span class="st">&#39;gt&#39;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&#39;devtools&#39;</span>)) <span class="fu">install.packages</span>(<span class="st">&#39;devtools&#39;</span>); <span class="fu">library</span>(<span class="st">&#39;devtools&#39;</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&#39;raster&#39;</span>)) <span class="fu">install.packages</span>(<span class="st">&#39;raster&#39;</span>); <span class="fu">library</span>(<span class="st">&#39;raster&#39;</span>)</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&#39;terra&#39;</span>)) <span class="fu">install.packages</span>(<span class="st">&#39;terra&#39;</span>); <span class="fu">library</span>(<span class="st">&#39;terra&#39;</span>)</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&#39;sf&#39;</span>)) <span class="fu">install.packages</span>(<span class="st">&#39;sf&#39;</span>); <span class="fu">library</span>(<span class="st">&#39;sf&#39;</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&#39;sp&#39;</span>)) <span class="fu">install.packages</span>(<span class="st">&#39;sp&#39;</span>); <span class="fu">library</span>(<span class="st">&#39;sp&#39;</span>)</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&#39;rnaturalearth&#39;</span>)) <span class="fu">install.packages</span>(<span class="st">&#39;rnaturalearth&#39;</span>); <span class="fu">library</span>(<span class="st">&#39;rnaturalearth&#39;</span>)</span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&#39;rnaturalearthdata&#39;</span>)) <span class="fu">install.packages</span>(<span class="st">&#39;rnaturalearthdata&#39;</span>); <span class="fu">library</span>(<span class="st">&#39;rnaturalearthdata&#39;</span>)</span>
+<span id="cb1-8"><a href="#cb1-8" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&#39;rnaturalearthhires&#39;</span>)) <span class="fu">install.packages</span>(<span class="st">&#39;rnaturalearthhires&#39;</span>); <span class="fu">library</span>(<span class="st">&#39;rnaturalearthhires&#39;</span>)</span>
+<span id="cb1-9"><a href="#cb1-9" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&#39;dplyr&#39;</span>)) <span class="fu">install.packages</span>(<span class="st">&#39;dplyr&#39;</span>); <span class="fu">library</span>(<span class="st">&#39;dplyr&#39;</span>)</span>
+<span id="cb1-10"><a href="#cb1-10" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&#39;readr&#39;</span>)) <span class="fu">install.packages</span>(<span class="st">&#39;readr&#39;</span>); <span class="fu">library</span>(<span class="st">&#39;readr&#39;</span>)</span>
+<span id="cb1-11"><a href="#cb1-11" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&#39;RColorBrewer&#39;</span>)) <span class="fu">install.packages</span>(<span class="st">&#39;RColorBrewer&#39;</span>); <span class="fu">library</span>(<span class="st">&#39;RColorBrewer&#39;</span>)</span>
+<span id="cb1-12"><a href="#cb1-12" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&#39;ggplot2&#39;</span>)) <span class="fu">install.packages</span>(<span class="st">&#39;ggplot2&#39;</span>); <span class="fu">library</span>(<span class="st">&#39;ggplot2&#39;</span>)</span>
+<span id="cb1-13"><a href="#cb1-13" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&#39;viridis&#39;</span>)) <span class="fu">install.packages</span>(<span class="st">&#39;viridis&#39;</span>); <span class="fu">library</span>(<span class="st">&#39;viridis&#39;</span>)</span>
+<span id="cb1-14"><a href="#cb1-14" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&#39;rmapshaper&#39;</span>)) <span class="fu">install.packages</span>(<span class="st">&#39;rmapshaper&#39;</span>); <span class="fu">library</span>(<span class="st">&#39;rmapshaper&#39;</span>)</span>
+<span id="cb1-15"><a href="#cb1-15" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&#39;tidyr&#39;</span>)) <span class="fu">install.packages</span>(<span class="st">&#39;tidyr&#39;</span>); <span class="fu">library</span>(<span class="st">&#39;tidyr&#39;</span>)</span>
+<span id="cb1-16"><a href="#cb1-16" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&#39;lubridate&#39;</span>)) <span class="fu">install.packages</span>(<span class="st">&#39;lubridate&#39;</span>); <span class="fu">library</span>(<span class="st">&#39;lubridate&#39;</span>)</span>
+<span id="cb1-17"><a href="#cb1-17" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">&#39;gt&#39;</span>)) <span class="fu">install.packages</span>(<span class="st">&#39;gt&#39;</span>); <span class="fu">library</span>(<span class="st">&#39;gt&#39;</span>)</span></code></pre></div>
 <hr />
 </div>
 <div id="precipitation-isoscape" class="section level2" number="0.2">
@@ -300,20 +301,20 @@ for our discrete origin regions:</p>
 <span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a></span>
 <span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>local_max <span class="ot">&lt;-</span> <span class="fu">max</span>(wi_d2h_values_NA<span class="sc">$</span>d2h_vs_vsmow_original) <span class="sc">+</span> SD_eq</span>
 <span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>local_min <span class="ot">&lt;-</span> <span class="fu">min</span>(wi_d2h_values_NA<span class="sc">$</span>d2h_vs_vsmow_original) <span class="sc">-</span> SD_eq</span></code></pre></div>
-<div id="ttvnhwnboi" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#ttvnhwnboi table {
+<div id="wyndjwtvfn" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#wyndjwtvfn table {
 font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 -webkit-font-smoothing: antialiased;
 -moz-osx-font-smoothing: grayscale;
 }
-#ttvnhwnboi thead, #ttvnhwnboi tbody, #ttvnhwnboi tfoot, #ttvnhwnboi tr, #ttvnhwnboi td, #ttvnhwnboi th {
+#wyndjwtvfn thead, #wyndjwtvfn tbody, #wyndjwtvfn tfoot, #wyndjwtvfn tr, #wyndjwtvfn td, #wyndjwtvfn th {
 border-style: none;
 }
-#ttvnhwnboi p {
+#wyndjwtvfn p {
 margin: 0;
 padding: 0;
 }
-#ttvnhwnboi .gt_table {
+#wyndjwtvfn .gt_table {
 display: table;
 border-collapse: collapse;
 line-height: normal;
@@ -338,11 +339,11 @@ border-left-style: none;
 border-left-width: 2px;
 border-left-color: #D3D3D3;
 }
-#ttvnhwnboi .gt_caption {
+#wyndjwtvfn .gt_caption {
 padding-top: 4px;
 padding-bottom: 4px;
 }
-#ttvnhwnboi .gt_title {
+#wyndjwtvfn .gt_title {
 color: #333333;
 font-size: 125%;
 font-weight: initial;
@@ -353,7 +354,7 @@ padding-right: 5px;
 border-bottom-color: #FFFFFF;
 border-bottom-width: 0;
 }
-#ttvnhwnboi .gt_subtitle {
+#wyndjwtvfn .gt_subtitle {
 color: #333333;
 font-size: 85%;
 font-weight: initial;
@@ -364,7 +365,7 @@ padding-right: 5px;
 border-top-color: #FFFFFF;
 border-top-width: 0;
 }
-#ttvnhwnboi .gt_heading {
+#wyndjwtvfn .gt_heading {
 background-color: #FFFFFF;
 text-align: center;
 border-bottom-color: #FFFFFF;
@@ -375,12 +376,12 @@ border-right-style: none;
 border-right-width: 1px;
 border-right-color: #D3D3D3;
 }
-#ttvnhwnboi .gt_bottom_border {
+#wyndjwtvfn .gt_bottom_border {
 border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 }
-#ttvnhwnboi .gt_col_headings {
+#wyndjwtvfn .gt_col_headings {
 border-top-style: solid;
 border-top-width: 2px;
 border-top-color: #D3D3D3;
@@ -394,7 +395,7 @@ border-right-style: none;
 border-right-width: 1px;
 border-right-color: #D3D3D3;
 }
-#ttvnhwnboi .gt_col_heading {
+#wyndjwtvfn .gt_col_heading {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -413,7 +414,7 @@ padding-left: 5px;
 padding-right: 5px;
 overflow-x: hidden;
 }
-#ttvnhwnboi .gt_column_spanner_outer {
+#wyndjwtvfn .gt_column_spanner_outer {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -424,13 +425,13 @@ padding-bottom: 0;
 padding-left: 4px;
 padding-right: 4px;
 }
-#ttvnhwnboi .gt_column_spanner_outer:first-child {
+#wyndjwtvfn .gt_column_spanner_outer:first-child {
 padding-left: 0;
 }
-#ttvnhwnboi .gt_column_spanner_outer:last-child {
+#wyndjwtvfn .gt_column_spanner_outer:last-child {
 padding-right: 0;
 }
-#ttvnhwnboi .gt_column_spanner {
+#wyndjwtvfn .gt_column_spanner {
 border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
@@ -441,10 +442,10 @@ overflow-x: hidden;
 display: inline-block;
 width: 100%;
 }
-#ttvnhwnboi .gt_spanner_row {
+#wyndjwtvfn .gt_spanner_row {
 border-bottom-style: hidden;
 }
-#ttvnhwnboi .gt_group_heading {
+#wyndjwtvfn .gt_group_heading {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -469,7 +470,7 @@ border-right-color: #D3D3D3;
 vertical-align: middle;
 text-align: left;
 }
-#ttvnhwnboi .gt_empty_group_heading {
+#wyndjwtvfn .gt_empty_group_heading {
 padding: 0.5px;
 color: #333333;
 background-color: #FFFFFF;
@@ -483,13 +484,13 @@ border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 vertical-align: middle;
 }
-#ttvnhwnboi .gt_from_md > :first-child {
+#wyndjwtvfn .gt_from_md > :first-child {
 margin-top: 0;
 }
-#ttvnhwnboi .gt_from_md > :last-child {
+#wyndjwtvfn .gt_from_md > :last-child {
 margin-bottom: 0;
 }
-#ttvnhwnboi .gt_row {
+#wyndjwtvfn .gt_row {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -507,7 +508,7 @@ border-right-color: #D3D3D3;
 vertical-align: middle;
 overflow-x: hidden;
 }
-#ttvnhwnboi .gt_stub {
+#wyndjwtvfn .gt_stub {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -519,7 +520,7 @@ border-right-color: #D3D3D3;
 padding-left: 5px;
 padding-right: 5px;
 }
-#ttvnhwnboi .gt_stub_row_group {
+#wyndjwtvfn .gt_stub_row_group {
 color: #333333;
 background-color: #FFFFFF;
 font-size: 100%;
@@ -532,13 +533,13 @@ padding-left: 5px;
 padding-right: 5px;
 vertical-align: top;
 }
-#ttvnhwnboi .gt_row_group_first td {
+#wyndjwtvfn .gt_row_group_first td {
 border-top-width: 2px;
 }
-#ttvnhwnboi .gt_row_group_first th {
+#wyndjwtvfn .gt_row_group_first th {
 border-top-width: 2px;
 }
-#ttvnhwnboi .gt_summary_row {
+#wyndjwtvfn .gt_summary_row {
 color: #333333;
 background-color: #FFFFFF;
 text-transform: inherit;
@@ -547,14 +548,14 @@ padding-bottom: 8px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#ttvnhwnboi .gt_first_summary_row {
+#wyndjwtvfn .gt_first_summary_row {
 border-top-style: solid;
 border-top-color: #D3D3D3;
 }
-#ttvnhwnboi .gt_first_summary_row.thick {
+#wyndjwtvfn .gt_first_summary_row.thick {
 border-top-width: 2px;
 }
-#ttvnhwnboi .gt_last_summary_row {
+#wyndjwtvfn .gt_last_summary_row {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -563,7 +564,7 @@ border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 }
-#ttvnhwnboi .gt_grand_summary_row {
+#wyndjwtvfn .gt_grand_summary_row {
 color: #333333;
 background-color: #FFFFFF;
 text-transform: inherit;
@@ -572,7 +573,7 @@ padding-bottom: 8px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#ttvnhwnboi .gt_first_grand_summary_row {
+#wyndjwtvfn .gt_first_grand_summary_row {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -581,7 +582,7 @@ border-top-style: double;
 border-top-width: 6px;
 border-top-color: #D3D3D3;
 }
-#ttvnhwnboi .gt_last_grand_summary_row_top {
+#wyndjwtvfn .gt_last_grand_summary_row_top {
 padding-top: 8px;
 padding-bottom: 8px;
 padding-left: 5px;
@@ -590,10 +591,10 @@ border-bottom-style: double;
 border-bottom-width: 6px;
 border-bottom-color: #D3D3D3;
 }
-#ttvnhwnboi .gt_striped {
+#wyndjwtvfn .gt_striped {
 background-color: rgba(128, 128, 128, 0.05);
 }
-#ttvnhwnboi .gt_table_body {
+#wyndjwtvfn .gt_table_body {
 border-top-style: solid;
 border-top-width: 2px;
 border-top-color: #D3D3D3;
@@ -601,7 +602,7 @@ border-bottom-style: solid;
 border-bottom-width: 2px;
 border-bottom-color: #D3D3D3;
 }
-#ttvnhwnboi .gt_footnotes {
+#wyndjwtvfn .gt_footnotes {
 color: #333333;
 background-color: #FFFFFF;
 border-bottom-style: none;
@@ -614,7 +615,7 @@ border-right-style: none;
 border-right-width: 2px;
 border-right-color: #D3D3D3;
 }
-#ttvnhwnboi .gt_footnote {
+#wyndjwtvfn .gt_footnote {
 margin: 0px;
 font-size: 90%;
 padding-top: 4px;
@@ -622,7 +623,7 @@ padding-bottom: 4px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#ttvnhwnboi .gt_sourcenotes {
+#wyndjwtvfn .gt_sourcenotes {
 color: #333333;
 background-color: #FFFFFF;
 border-bottom-style: none;
@@ -635,64 +636,64 @@ border-right-style: none;
 border-right-width: 2px;
 border-right-color: #D3D3D3;
 }
-#ttvnhwnboi .gt_sourcenote {
+#wyndjwtvfn .gt_sourcenote {
 font-size: 90%;
 padding-top: 4px;
 padding-bottom: 4px;
 padding-left: 5px;
 padding-right: 5px;
 }
-#ttvnhwnboi .gt_left {
+#wyndjwtvfn .gt_left {
 text-align: left;
 }
-#ttvnhwnboi .gt_center {
+#wyndjwtvfn .gt_center {
 text-align: center;
 }
-#ttvnhwnboi .gt_right {
+#wyndjwtvfn .gt_right {
 text-align: right;
 font-variant-numeric: tabular-nums;
 }
-#ttvnhwnboi .gt_font_normal {
+#wyndjwtvfn .gt_font_normal {
 font-weight: normal;
 }
-#ttvnhwnboi .gt_font_bold {
+#wyndjwtvfn .gt_font_bold {
 font-weight: bold;
 }
-#ttvnhwnboi .gt_font_italic {
+#wyndjwtvfn .gt_font_italic {
 font-style: italic;
 }
-#ttvnhwnboi .gt_super {
+#wyndjwtvfn .gt_super {
 font-size: 65%;
 }
-#ttvnhwnboi .gt_footnote_marks {
+#wyndjwtvfn .gt_footnote_marks {
 font-size: 75%;
 vertical-align: 0.4em;
 position: initial;
 }
-#ttvnhwnboi .gt_asterisk {
+#wyndjwtvfn .gt_asterisk {
 font-size: 100%;
 vertical-align: 0;
 }
-#ttvnhwnboi .gt_indent_1 {
+#wyndjwtvfn .gt_indent_1 {
 text-indent: 5px;
 }
-#ttvnhwnboi .gt_indent_2 {
+#wyndjwtvfn .gt_indent_2 {
 text-indent: 10px;
 }
-#ttvnhwnboi .gt_indent_3 {
+#wyndjwtvfn .gt_indent_3 {
 text-indent: 15px;
 }
-#ttvnhwnboi .gt_indent_4 {
+#wyndjwtvfn .gt_indent_4 {
 text-indent: 20px;
 }
-#ttvnhwnboi .gt_indent_5 {
+#wyndjwtvfn .gt_indent_5 {
 text-indent: 25px;
 }
-#ttvnhwnboi .katex-display {
+#wyndjwtvfn .katex-display {
 display: inline-flex !important;
 margin-bottom: 0.75em !important;
 }
-#ttvnhwnboi div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#wyndjwtvfn div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
 height: 0px !important;
 }
 </style>
@@ -976,26 +977,31 @@ other attached packages:
 [11] rnaturalearthhires_1.0.0.9000 rnaturalearthdata_1.0.0      
 [13] rnaturalearth_1.0.1           sf_1.0-19                    
 [15] terra_1.8-5                   raster_3.6-30                
-[17] sp_2.1-4                     
+[17] sp_2.1-4                      devtools_2.4.5               
+[19] usethis_3.1.0                
 
 loaded via a namespace (and not attached):
- [1] gtable_0.3.6       xfun_0.49          bslib_0.8.0        lattice_0.22-5    
- [5] tzdb_0.4.0         vctrs_0.6.5        tools_4.3.3        generics_0.1.3    
- [9] parallel_4.3.3     curl_6.0.1         tibble_3.2.1       proxy_0.4-27      
-[13] pkgconfig_2.0.3    Matrix_1.6-5       KernSmooth_2.23-22 lifecycle_1.0.4   
-[17] farver_2.1.2       compiler_4.3.3     prettydoc_0.4.1    munsell_0.5.1     
-[21] codetools_0.2-19   htmltools_0.5.8.1  class_7.3-22       sass_0.4.9        
-[25] yaml_2.3.10        crayon_1.5.3       pillar_1.10.0      jquerylib_0.1.4   
-[29] classInt_0.4-10    cachem_1.1.0       nlme_3.1-164       tidyselect_1.2.1  
-[33] digest_0.6.37      purrr_1.0.2        splines_4.3.3      labeling_0.4.3    
-[37] fastmap_1.2.0      grid_4.3.3         colorspace_2.1-1   cli_3.6.3         
-[41] magrittr_2.0.3     e1071_1.7-16       withr_3.0.2        scales_1.3.0      
-[45] bit64_4.5.2        timechange_0.3.0   rmarkdown_2.29     httr_1.4.7        
-[49] bit_4.5.0          gridExtra_2.3      hms_1.1.3          evaluate_1.0.1    
-[53] knitr_1.49         V8_6.0.0           mgcv_1.9-1         rlang_1.1.4       
-[57] Rcpp_1.0.13-1      glue_1.8.0         DBI_1.2.3          geojsonsf_2.0.3   
-[61] xml2_1.3.6         vroom_1.6.5        rstudioapi_0.17.1  jsonlite_1.8.9    
-[65] R6_2.5.1           units_0.8-5       </code></pre>
+ [1] tidyselect_1.2.1   farver_2.1.2       fastmap_1.2.0      promises_1.3.2    
+ [5] digest_0.6.37      timechange_0.3.0   mime_0.12          lifecycle_1.0.4   
+ [9] ellipsis_0.3.2     magrittr_2.0.3     compiler_4.3.3     rlang_1.1.4       
+[13] sass_0.4.9         tools_4.3.3        yaml_2.3.10        knitr_1.49        
+[17] labeling_0.4.3     htmlwidgets_1.6.4  bit_4.5.0          pkgbuild_1.4.5    
+[21] classInt_0.4-10    curl_6.0.1         xml2_1.3.6         pkgload_1.4.0     
+[25] KernSmooth_2.23-22 miniUI_0.1.1.1     withr_3.0.2        purrr_1.0.2       
+[29] grid_4.3.3         urlchecker_1.0.1   profvis_0.4.0      xtable_1.8-4      
+[33] e1071_1.7-16       colorspace_2.1-1   scales_1.3.0       cli_3.6.3         
+[37] crayon_1.5.3       rmarkdown_2.29     generics_0.1.3     remotes_2.5.0     
+[41] rstudioapi_0.17.1  httr_1.4.7         tzdb_0.4.0         sessioninfo_1.2.2 
+[45] DBI_1.2.3          cachem_1.1.0       proxy_0.4-27       splines_4.3.3     
+[49] parallel_4.3.3     vctrs_0.6.5        Matrix_1.6-5       V8_6.0.0          
+[53] jsonlite_1.8.9     geojsonsf_2.0.3    hms_1.1.3          bit64_4.5.2       
+[57] jquerylib_0.1.4    units_0.8-5        glue_1.8.0         codetools_0.2-19  
+[61] gtable_0.3.6       later_1.4.1        munsell_0.5.1      tibble_3.2.1      
+[65] pillar_1.10.0      htmltools_0.5.8.1  R6_2.5.1           vroom_1.6.5       
+[69] evaluate_1.0.1     shiny_1.10.0       lattice_0.22-5     memoise_2.0.1     
+[73] httpuv_1.6.15      bslib_0.8.0        class_7.3-22       Rcpp_1.0.13-1     
+[77] nlme_3.1-164       gridExtra_2.3      mgcv_1.9-1         xfun_0.49         
+[81] fs_1.6.5           prettydoc_0.4.1    pkgconfig_2.0.3   </code></pre>
 </div>
 </div>
 </div>
